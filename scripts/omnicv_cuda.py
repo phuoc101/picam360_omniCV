@@ -532,3 +532,4 @@ class fisheyeImgConvGPU:
                           borderMode=cv2.BORDER_WRAP)
 
         return persp.download()
+
