@@ -21,11 +21,10 @@ def generate_launch_description():
 
     # get path to params file
     dir = os.path.dirname(os.path.abspath(__file__))
-    params_path = os.path.join(dir, '../params/picam360_params.yaml')
+    params_path = os.path.join(dir, '../config/picam360_params.yaml')
 
     node_name = args.node_name
 
-    print(params_path)
     ld.add_action(Node(
         package='usb_cam', executable='usb_cam_node_exe', output='screen',
         name=node_name,

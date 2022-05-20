@@ -1,6 +1,7 @@
 #!/usr/bin/env/python
 import cv2
 import sys
+import os
 from omnicv import fisheyeImgConv
 
 
@@ -14,7 +15,9 @@ flag = int(sys.argv[3])  # =0 for equirectangular image,
 # =1 for fisheye image, =2 for horizontaly placed fisheye image
 
 WINDOW_NAME = "360 Viewer"
-param_file_path = "fisheyeParams.txt"
+root = os.path.dirname(os.path.abspath(__file__))
+file_path = "fisheyeParams.txt"
+param_file_path = os.path.join(root, file_path)
 
 if flag == 0:
     mapper = fisheyeImgConv()

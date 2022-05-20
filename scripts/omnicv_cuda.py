@@ -146,12 +146,7 @@ class fisheyeImgConvGPU:
 
         return cu_rect_img.download()
 
-    def equirect2cubemap(self,
-                         srcFrame,
-                         side=256,
-                         modif=False,
-                         dice=False
-                         ):
+    def equirect2cubemap(self, srcFrame, side=256, modif=False, dice=False):
 
         self.dice = dice
         self.side = side
@@ -277,10 +272,7 @@ class fisheyeImgConvGPU:
 
         return cp.asnumpy(dstFrame_cp)
 
-    def cubemap2equirect(self,
-                         srcFrame,
-                         outShape
-                         ):
+    def cubemap2equirect(self, srcFrame, outShape):
 
         srcFrame_cp = cp.asarray(srcFrame)
         h, w = srcFrame_cp.shape[:2]
@@ -396,3 +388,78 @@ class fisheyeImgConvGPU:
             # dstFrame = cv2.add(dstFrame, dstFrame2.download())
 
         return dstFrame
+
+    def cubemap2persp(self, img, FOV, THETA, PHI, Hd, Wd):
+
+        # THETA is left/right angle, PHI is up/down angle, both in degree
+
+        img = self.cubemap2equirect(img, [2 * Hd, 4 * Hd])
+
+        equ_h, equ_w = img.shape[:2]
+
+        equ_cx = (equ_w) / 2.0
+        equ_cy = (equ_h) / 2.0
+
+        wFOV = FOV
+        hFOV = float(Hd) / Wd * wFOV
+
+        c_x = (Wd) / 2.0
+        c_y = (Hd) / 2.0
+
+        w_len = 2 * 1 * cp.sin(
+            cp.radians(wFOV / 2.0)) / cp.cos(cp.radians(wFOV / 2.0))
+        w_interval = w_len / (Wd)
+
+        h_len = 2 * 1 * cp.sin(
+            cp.radians(hFOV / 2.0)) / cp.cos(cp.radians(hFOV / 2.0))
+        h_interval = h_len / (Hd)
+
+        x_map = cp.zeros([Hd, Wd], cp.float32) + 1
+        y_map = cp.tile((cp.arange(0, Wd) - c_x) * w_interval, [Hd, 1])
+        z_map = -cp.tile((cp.arange(0, Hd) - c_y) * h_interval, [Wd, 1]).T
+        D = cp.sqrt(x_map ** 2 + y_map ** 2 + z_map ** 2)
+        xyz = cp.zeros([Hd, Wd, 3], cp.float)
+        xyz[:, :, 0] = (1 / D * x_map)[:, :]
+        xyz[:, :, 1] = (1 / D * y_map)[:, :]
+        xyz[:, :, 2] = (1 / D * z_map)[:, :]
+
+        y_axis = cp.array([0.0, 1.0, 0.0], cp.float32)
+        z_axis = cp.array([0.0, 0.0, 1.0], cp.float32)
+        [R1, _] = cv2.Rodrigues(cp.asnumpy(z_axis * cp.radians(THETA)))
+        R1 = cp.asarray(R1)
+        [R2, _] = cv2.Rodrigues(cp.asnumpy(cp.dot(R1, y_axis) * cp.radians(-PHI)))
+        R2 = cp.asarray(R2)
+
+        xyz = xyz.reshape([Hd * Wd, 3]).T
+        xyz = cp.dot(R1, xyz)
+        xyz = cp.dot(R2, xyz).T
+        lat = cp.arcsin(xyz[:, 2] / 1)
+        lon = cp.zeros([Hd * Wd], np.float)
+        theta = cp.arctan(xyz[:, 1] / xyz[:, 0])
+        idx1 = xyz[:, 0] > 0
+        idx2 = xyz[:, 1] > 0
+
+        idx3 = ((1 - idx1) * idx2).astype(cp.bool)
+        idx4 = ((1 - idx1) * (1 - idx2)).astype(cp.bool)
+
+        lon[idx1] = theta[idx1]
+        lon[idx3] = theta[idx3] + cp.pi
+        lon[idx4] = theta[idx4] - cp.pi
+
+        lon = cp.asnumpy(lon.reshape([Hd, Wd]) / cp.pi * 180)
+        lat = cp.asnumpy(-lat.reshape([Hd, Wd]) / cp.pi * 180)
+        lon = cp.asnumpy(lon / 180 * equ_cx + equ_cx)
+        lat = cp.asnumpy(lat / 90 * equ_cy + equ_cy)
+
+        self.map_x = lon.astype(cp.float32)
+        self.map_y = lat.astype(cp.float32)
+
+        persp = cv2.cuda.remap(
+            cv2.cuda_GpuMat(img),
+            cv2.cuda_GpuMat(lon.astype(np.float32)),
+            cv2.cuda_GpuMat(lat.astype(np.float32)),
+            cv2.INTER_CUBIC,
+            borderMode=cv2.BORDER_WRAP,
+        )
+
+        return persp.download()

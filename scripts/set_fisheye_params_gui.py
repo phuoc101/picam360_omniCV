@@ -107,7 +107,7 @@ while True:
             print("aperture : ", aperture)
             print("delx : ", delx)
             print("dely : ", dely)
-            f = open("fisheyeParams.txt", "w+")
+            f = open("../config/fisheyeParams.txt", "w+")
             f.write(str(RADIUS) + "\n")
             f.write(str(aperture) + "\n")
             f.write(str(delx) + "\n")

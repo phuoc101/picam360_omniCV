@@ -133,63 +133,6 @@ class fisheyeImgConv:
             borderMode=cv2.BORDER_CONSTANT,
         )
 
-    # def fisheye2equirect(self, srcFrame, outShape, aperture=0, delx=0, dely=0, radius=0, edit_mode=False):
-    #     inShape = srcFrame.shape[:2]
-    #     self.Hs = inShape[0]
-    #     self.Ws = inShape[1]
-    #     self.Hd = outShape[0]
-    #     self.Wd = outShape[1]
-    #     self.map_x = np.zeros((self.Hd, self.Wd), np.float32)
-    #     self.map_y = np.zeros((self.Hd, self.Wd), np.float32)
-    #
-    #     # This value needs to be tuned using the GUI for every new camera
-    #     self.Cx = self.Ws//2 - delx
-    #     # This value needs to be tuned using the GUI for every new camera
-    #     self.Cy = self.Hs//2 - dely
-    #     # print(self.Cx, self.Cy)
-    #
-    #     if not radius:
-    #         self.radius = min(inShape)
-    #     else:
-    #         self.radius = radius
-    #
-    #     if not aperture:
-    #         self.aperture = 385  # This value is determined using the GUI
-    #     else:
-    #         self.aperture = aperture
-    #
-    #     if not edit_mode:
-    #         f = open(self.filePath, "r")
-    #         self.radius = int(f.readline())
-    #         self.aperture = int(f.readline())
-    #         delx = int(f.readline())
-    #         dely = int(f.readline())
-    #         f.close
-    #
-    #     i, j = np.meshgrid(np.arange(0, int(self.Hd)),
-    #                        np.arange(0, int(self.Wd)))
-    #     xyz = np.zeros((self.Hd, self.Wd, 3))
-    #     x, y, z = np.split(xyz, 3, axis=-1)
-    #
-    #     x = self.radius*np.cos((i*1.0/self.Hd - 0.5)*np.pi) * \
-    #         np.cos((j*1.0/self.Hd - 0.5)*np.pi)
-    #     y = self.radius*np.cos((i*1.0/self.Hd - 0.5)*np.pi) * \
-    #         np.sin((j*1.0/self.Hd - 0.5)*np.pi)
-    #     z = self.radius * np.sin((i*1.0/self.Hd-0.5)*np.pi)
-    #     print(x,y,z)
-    #
-    #     # indx = np.logical_not(np.arccos(y/np.sqrt(x**2+y**2+z**2))/np.pi*180 > self.aperture/2)
-    #     r = 2*np.arctan2(np.sqrt(x**2+z**2), y)/np.pi * \
-    #         180/self.aperture*self.radius
-    #     theta = np.arctan2(z, x)
-    #     # print(theta)
-    #
-    #     self.map_x = np.multiply(
-    #         r, np.cos(theta)).T.astype(np.float32) + self.Cx
-    #     self.map_y = np.multiply(
-    #         r, np.sin(theta)).T.astype(np.float32) + self.Cy
-    #
-    #     return cv2.remap(srcFrame, self.map_x, self.map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
 
     def equirect2cubemap(self,
                          srcFrame,
@@ -493,14 +436,7 @@ class fisheyeImgConv:
 
         return persp
 
-    def cubemap2persp(self,
-                      img,
-                      FOV,
-                      THETA,
-                      PHI,
-                      Hd,
-                      Wd
-                      ):
+    def cubemap2persp(self, img, FOV, THETA, PHI, Hd, Wd):
 
         # THETA is left/right angle, PHI is up/down angle, both in degree
 

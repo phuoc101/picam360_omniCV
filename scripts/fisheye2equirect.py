@@ -6,7 +6,7 @@ from omnicv import fisheyeImgConv
 
 Img_path = sys.argv[1]
 root = os.path.dirname(os.path.abspath(__file__))
-file_path = "../params/fisheyeParams.txt"
+file_path = "../config/fisheyeParams.txt"
 param_file_path = os.path.join(root, file_path)
 
 frame = cv2.imread(Img_path)

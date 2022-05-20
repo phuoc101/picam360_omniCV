@@ -14,7 +14,7 @@ class PicamReader(Node):
         super().__init__('picam_projection_orig')
         self.get_logger().set_level(LoggingSeverity.DEBUG)
         self.root = os.path.dirname(os.path.abspath(__file__))
-        self.param_file_path = os.path.join(self.root, "../params/fisheyeParams.txt")
+        self.param_file_path = os.path.join(self.root, "../config/fisheyeParams.txt")
         self.frame = None
         self.cam_subs = self.create_subscription(
             Image,
