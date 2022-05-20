@@ -74,7 +74,7 @@ class PicamReader(Node):
             )  # Specify parameters(FOV, theta, phi, height, width)
 
             self.frame = self.frame[0:outShape[0]//2, :]
-            cv2.imshow("picam360 with cuda", self.frame)
+            cv2.imshow(self.WINDOW_NAME, self.frame)
             self.get_logger().info(f"Processing time: { time.perf_counter()-t }")
             # print(time.time()- start)
             cv2.waitKey(1)

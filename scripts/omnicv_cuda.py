@@ -406,12 +406,12 @@ class fisheyeImgConvGPU:
         c_x = (Wd) / 2.0
         c_y = (Hd) / 2.0
 
-        w_len = 2 * 1 * cp.sin(
-            cp.radians(wFOV / 2.0)) / cp.cos(cp.radians(wFOV / 2.0))
+        w_len = 2 * 1 * np.sin(
+            np.radians(wFOV / 2.0)) / np.cos(np.radians(wFOV / 2.0))
         w_interval = w_len / (Wd)
 
-        h_len = 2 * 1 * cp.sin(
-            cp.radians(hFOV / 2.0)) / cp.cos(cp.radians(hFOV / 2.0))
+        h_len = 2 * 1 * np.sin(
+            np.radians(hFOV / 2.0)) / np.cos(np.radians(hFOV / 2.0))
         h_interval = h_len / (Hd)
 
         x_map = cp.zeros([Hd, Wd], cp.float32) + 1
