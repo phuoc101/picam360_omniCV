@@ -7,7 +7,7 @@ import os
 from rclpy.node import Node
 from rclpy.logging import LoggingSeverity
 from sensor_msgs.msg import Image
-from omnicv_cuda import fisheyeImgConvGPU
+from omnicv_cupy import fisheyeImgConvGPU
 
 
 class PicamReader(Node):
@@ -22,16 +22,6 @@ class PicamReader(Node):
             '/picam360/image_raw',
             self.image_callback,
             100)
-        self.WINDOW_NAME = "360 Viewer"
-
-        cv2.namedWindow(self.WINDOW_NAME)
-
-        cv2.createTrackbar("FOV", self.WINDOW_NAME, 90, 150, self.nothing)
-        cv2.createTrackbar("theta", self.WINDOW_NAME, 180, 360, self.nothing)
-        cv2.createTrackbar("phi", self.WINDOW_NAME, 180, 360, self.nothing)
-
-    def nothing(self, x):
-        pass
 
     def image_callback(self, msg):
         sz = (msg.height, msg.width)
@@ -62,19 +52,13 @@ class PicamReader(Node):
             # start = time.time()
             outShape = [400, 800]
             mapper = fisheyeImgConvGPU(self.param_file_path)
-            FOV = cv2.getTrackbarPos("FOV", self.WINDOW_NAME)
-            theta = cv2.getTrackbarPos("theta", self.WINDOW_NAME) - 180
-            phi = cv2.getTrackbarPos("phi", self.WINDOW_NAME) - 180
             t = time.perf_counter()
-
             self.frame = mapper.fisheye2equirect(self.frame, outShape, aperture=183, dely=-9)
+            cv2.imshow("picam360 with cuda 1", self.frame)
             self.frame = mapper.equirect2cubemap(self.frame, modif=True)
-            self.frame = mapper.cubemap2persp(
-                self.frame, FOV, theta, phi, 400, 400
-            )  # Specify parameters(FOV, theta, phi, height, width)
-
+            self.frame = mapper.cubemap2equirect(self.frame, outShape)
             self.frame = self.frame[0:outShape[0]//2, :]
-            cv2.imshow(self.WINDOW_NAME, self.frame)
+            cv2.imshow("picam360 with cuda 2", self.frame)
             self.get_logger().info(f"Processing time: { time.perf_counter()-t }")
             # print(time.time()- start)
             cv2.waitKey(1)

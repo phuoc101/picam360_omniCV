@@ -16,7 +16,8 @@ class ExamineImage(Node):
         self.path = os.path.join(self.dir, 'imgs')
         logging.debug(self.path)
         self.mat = None
-        self.subF = self.create_subscription(
+        logging.info("Press 'q' to record image...")
+        self.img_sub = self.create_subscription(
             Image,
             '/picam360/image_raw',
             self.image_callback,
@@ -26,11 +27,6 @@ class ExamineImage(Node):
 
     def image_callback(self, msg):
         sz = (msg.height, msg.width)
-        # print(msg.header.stamp)
-        # if False:
-        #     print("{encoding} {width} {height} {step} {data_size}".format(
-        #         encoding=msg.encoding, width=msg.width, height=msg.height,
-        #         step=msg.step, data_size=len(msg.data)))
         if msg.step * msg.height != len(msg.data):
             logging.error("bad step/height/data size")
             return

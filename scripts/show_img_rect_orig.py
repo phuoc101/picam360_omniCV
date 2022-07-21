@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import rclpy
 import time
+import os
 
 from rclpy.node import Node
 from rclpy.logging import LoggingSeverity
