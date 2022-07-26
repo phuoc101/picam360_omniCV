@@ -3,10 +3,16 @@ import numpy as np
 import rclpy
 import time
 import os
+import sys
 
 from rclpy.node import Node
 from rclpy.logging import LoggingSeverity
+from ament_index_python import get_package_share_directory, get_package_prefix
 from sensor_msgs.msg import Image
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
 from omnicv_cupy import fisheyeImgConvGPU
 
 
@@ -14,8 +20,7 @@ class PicamReader(Node):
     def __init__(self):
         super().__init__('picam_projection')
         self.get_logger().set_level(LoggingSeverity.DEBUG)
-        self.root = os.path.dirname(os.path.abspath(__file__))
-        self.param_file_path = os.path.join(self.root, "../config/fisheyeParams.txt")
+        self.param_file_path = os.path.join(get_package_share_directory('omnicv_ros2'), "config/fisheyeParams.txt")
         self.frame = None
         self.cam_subs = self.create_subscription(
             Image,
@@ -62,6 +67,8 @@ class PicamReader(Node):
             self.get_logger().info(f"Processing time: { time.perf_counter()-t }")
             # print(time.time()- start)
             cv2.waitKey(1)
+        else:
+            self.get_logger().error("No frames received")
 
 
 def main(args=None):

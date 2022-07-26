@@ -21,7 +21,7 @@ def generate_launch_description():
 
     # get path to params file
     dir = os.path.dirname(os.path.abspath(__file__))
-    params_path = os.path.join(dir, '../config/usbcam_params.yaml')
+    params_path = os.path.join(dir, '../config/picam360_params.yaml')
 
     node_name = args.node_name
 
@@ -34,4 +34,7 @@ def generate_launch_description():
             ("__ns", "/picam360")
         ]
     ))
+    ld.add_action(Node(
+        package='omnicv_ros2', executable='show_img', output='screen',
+        ))
     return ld

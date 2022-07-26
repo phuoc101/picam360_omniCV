@@ -3,43 +3,33 @@ import numpy as np
 import rclpy
 import time
 import os
+import sys
 
 from rclpy.node import Node
 from rclpy.logging import LoggingSeverity
+from ament_index_python import get_package_share_directory, get_package_prefix
 from sensor_msgs.msg import Image
-from omnicv_cupy import fisheyeImgConvGPU
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))
+from omnicv import fisheyeImgConv
 
 
 class PicamReader(Node):
     def __init__(self):
-        super().__init__('picam_projection')
+        super().__init__('picam_projection_orig')
         self.get_logger().set_level(LoggingSeverity.DEBUG)
-        self.root = os.path.dirname(os.path.abspath(__file__))
-        self.param_file_path = os.path.join(self.root, "../config/fisheyeParams.txt")
+        self.param_file_path = os.path.join(get_package_share_directory('omnicv_ros2'), "config/fisheyeParams.txt")
         self.frame = None
         self.cam_subs = self.create_subscription(
             Image,
             '/picam360/image_raw',
             self.image_callback,
             100)
-        self.WINDOW_NAME = "360 Viewer"
-
-        cv2.namedWindow(self.WINDOW_NAME)
-
-        cv2.createTrackbar("FOV", self.WINDOW_NAME, 90, 150, self.nothing)
-        cv2.createTrackbar("theta", self.WINDOW_NAME, 180, 360, self.nothing)
-        cv2.createTrackbar("phi", self.WINDOW_NAME, 180, 360, self.nothing)
-
-    def nothing(self, x):
-        pass
 
     def image_callback(self, msg):
         sz = (msg.height, msg.width)
-        # print(msg.header.stamp)
-        # if False:
-        #     print("{encoding} {width} {height} {step} {data_size}".format(
-        #         encoding=msg.encoding, width=msg.width, height=msg.height,
-        #         step=msg.step, data_size=len(msg.data)))
         if msg.step * msg.height != len(msg.data):
             self.get_logger().debug("bad step/height/data size")
             return
@@ -59,23 +49,16 @@ class PicamReader(Node):
             self.get_logger().debug("unsupported encoding {}".format(msg.encoding))
             return
         if self.frame is not None:
-            # start = time.time()
             outShape = [400, 800]
-            mapper = fisheyeImgConvGPU(self.param_file_path)
-            FOV = cv2.getTrackbarPos("FOV", self.WINDOW_NAME)
-            theta = cv2.getTrackbarPos("theta", self.WINDOW_NAME) - 180
-            phi = cv2.getTrackbarPos("phi", self.WINDOW_NAME) - 180
+            mapper = fisheyeImgConv(self.param_file_path)
             t = time.perf_counter()
-
             self.frame = mapper.fisheye2equirect(self.frame, outShape, aperture=183, dely=-9)
-            self.frame = mapper.equirect2persp(
-                self.frame, FOV, theta, phi, 400, 400
-            )  # Specify parameters(FOV, theta, phi, height, width)
-
+            cv2.imshow("picam360 with cuda 1", self.frame)
+            self.frame = mapper.equirect2cubemap(self.frame, modif=True)
+            self.frame = mapper.cubemap2equirect(self.frame, outShape)
             self.frame = self.frame[0:outShape[0]//2, :]
-            cv2.imshow(self.WINDOW_NAME, self.frame)
+            cv2.imshow("picam360 with cuda 2", self.frame)
             self.get_logger().info(f"Processing time: { time.perf_counter()-t }")
-            # print(time.time()- start)
             cv2.waitKey(1)
 
 

@@ -13,7 +13,7 @@ def generate_launch_description():
 
     parser = argparse.ArgumentParser(description='usb_cam demo')
     parser.add_argument('-n', '--node-name', dest='node_name', type=str,
-                        help='name for device', default='usb_cam')
+                        help='name for device', default='picam360')
 
     args, unknown = parser.parse_known_args(sys.argv[4:])
 
@@ -34,4 +34,12 @@ def generate_launch_description():
             ("__ns", "/picam360")
         ]
     ))
+    ld.add_action(Node(
+        package='omnicv_ros2', executable='show_img', output='screen',
+        ))
+
+    ld.add_action(Node(
+        package='omnicv_ros2', executable='fisheye2rect_ori', output="screen",
+        name="picam_rectifier"
+        ))
     return ld

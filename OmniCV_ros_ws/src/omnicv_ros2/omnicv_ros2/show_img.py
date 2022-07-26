@@ -7,7 +7,6 @@ import os
 from rclpy.node import Node
 from rclpy.logging import LoggingSeverity
 from sensor_msgs.msg import Image
-from omnicv import fisheyeImgConv
 
 
 class PicamReader(Node):
@@ -25,11 +24,6 @@ class PicamReader(Node):
 
     def image_callback(self, msg):
         sz = (msg.height, msg.width)
-        # print(msg.header.stamp)
-        # if False:
-        #     print("{encoding} {width} {height} {step} {data_size}".format(
-        #         encoding=msg.encoding, width=msg.width, height=msg.height,
-        #         step=msg.step, data_size=len(msg.data)))
         if msg.step * msg.height != len(msg.data):
             self.get_logger().debug("bad step/height/data size")
             return
@@ -49,18 +43,8 @@ class PicamReader(Node):
             self.get_logger().debug("unsupported encoding {}".format(msg.encoding))
             return
         if self.frame is not None:
-            # start = time.time()
             outShape = [400, 800]
-            mapper = fisheyeImgConv(self.param_file_path)
-            t = time.perf_counter()
-            self.frame = mapper.fisheye2equirect(self.frame, outShape, aperture=183, dely=-9)
-            cv2.imshow("picam360 with cuda 1", self.frame)
-            self.frame = mapper.equirect2cubemap(self.frame, modif=True)
-            self.frame = mapper.cubemap2equirect(self.frame, outShape)
-            self.frame = self.frame[0:outShape[0]//2, :]
-            cv2.imshow("picam360 with cuda 2", self.frame)
-            self.get_logger().info(f"Processing time: { time.perf_counter()-t }")
-            # print(time.time()- start)
+            cv2.imshow("original image", self.frame)
             cv2.waitKey(1)
 
 
