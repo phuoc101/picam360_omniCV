@@ -1,7 +1,10 @@
 #!/usr/bin/env/python
 import cv2
 import sys
-from omnicv import fisheyeImgConv
+ROOT = os.path.relpath(os.path.join(os.path.dirname(__file__), '../omnicv_ros2'))
+if ROOT not in sys.path:
+    sys.path.append(ROOT)
+from omnicv_cupy import fisheyeImgConvGPU
 
 source_path = sys.argv[1]
 video = int(sys.argv[2])
@@ -47,7 +50,7 @@ while ret:
     beta = cv2.getTrackbarPos("beta", WINDOW_NAME) - 180
     gamma = cv2.getTrackbarPos("gamma", WINDOW_NAME) - 180
 
-    fisheye = mapper.equirect2Fisheye(
+    fisheye = mapper.equirect2FisheyeGPU(
         equiRect, outShape=outShape, f=f, xi=dist, angles=[alpha, beta, gamma]
     )
     cv2.imshow(WINDOW_NAME, fisheye)

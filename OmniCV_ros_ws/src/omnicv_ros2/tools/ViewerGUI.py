@@ -2,7 +2,10 @@
 import cv2
 import sys
 import os
-from omnicv import fisheyeImgConv
+ROOT = os.path.relpath(os.path.join(os.path.dirname(__file__), '../omnicv_ros2'))
+if ROOT not in sys.path:
+    sys.path.append(ROOT)
+from omnicv_cupy import fisheyeImgConvGPU
 
 
 def nothing(x):
@@ -20,9 +23,9 @@ file_path = "fisheyeParams.txt"
 param_file_path = os.path.join(root, file_path)
 
 if flag == 0:
-    mapper = fisheyeImgConv()
+    mapper = fisheyeImgConvGPU()
 else:
-    mapper = fisheyeImgConv(param_file_path)
+    mapper = fisheyeImgConvGPU(param_file_path)
 
 cv2.namedWindow(WINDOW_NAME)
 
