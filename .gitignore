@@ -56,6 +56,9 @@ CATKIN_IGNORE
 # image files
 imgs/
 input/
+*.png
+*.jpg
+*.jpeg
 
 # txt Formats
 *formats.txt
