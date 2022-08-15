@@ -1,7 +1,11 @@
 #!/usr/bin/env/python
 import cv2
 import sys
-from omnicv import fisheyeImgConv
+import os
+ROOT = os.path.relpath(os.path.join(os.path.dirname(__file__), '../omnicv_ros2'))
+if ROOT not in sys.path:
+    sys.path.append(ROOT)
+from omnicv_cupy import fisheyeImgConvGPU
 
 
 def nothing(x):
@@ -58,7 +62,7 @@ print(frame.shape)
 outShape = [480, 960]
 inShape = frame.shape[:2]
 
-mapper = fisheyeImgConv()
+mapper = fisheyeImgConvGPU()
 mapper.fisheye2equirect(frame, outShape, edit_mode=True)
 while True:
     if True:

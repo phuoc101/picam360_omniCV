@@ -55,6 +55,7 @@ CATKIN_IGNORE
 
 # image files
 imgs/
+input/
 
 # txt Formats
 *formats.txt
