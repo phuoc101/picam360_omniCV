@@ -58,7 +58,8 @@ class PicamReader(Node):
             outShape = [400, 800]
             mapper = fisheyeImgConvGPU(self.param_file_path)
             t = time.perf_counter()
-            self.frame = mapper.fisheye2equirect(self.frame, outShape, aperture=183, dely=-9)
+            self.frame = mapper.fisheye2equirect(self.frame, outShape)
+            self.frame = cv2.flip(self.frame, 1)
             cv2.imshow("picam360 with cuda 1", self.frame)
             self.frame = mapper.equirect2cubemap(self.frame, modif=True)
             self.frame = mapper.cubemap2equirect(self.frame, outShape)

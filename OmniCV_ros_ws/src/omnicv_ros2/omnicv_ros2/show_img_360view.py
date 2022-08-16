@@ -71,12 +71,13 @@ class PicamReader(Node):
             phi = cv2.getTrackbarPos("phi", self.WINDOW_NAME) - 180
             t = time.perf_counter()
 
-            self.frame = mapper.fisheye2equirect(self.frame, outShape, aperture=183, dely=-9)
+            self.frame = mapper.fisheye2equirect(self.frame, outShape)
             self.frame = mapper.equirect2persp(
                 self.frame, FOV, theta, phi, 400, 400
             )  # Specify parameters(FOV, theta, phi, height, width)
+            self.frame = cv2.flip(self.frame, 1)
 
-            self.frame = self.frame[0:outShape[0]//2, :]
+            # self.frame = self.frame[0:outShape[0]//2, :]
             cv2.imshow(self.WINDOW_NAME, self.frame)
             self.get_logger().info(f"Processing time: { time.perf_counter()-t }")
             # print(time.time()- start)

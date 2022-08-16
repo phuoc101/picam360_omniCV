@@ -2,6 +2,7 @@
 import cv2
 import sys
 import os
+from ament_index_python import get_package_share_directory
 ROOT = os.path.relpath(os.path.join(os.path.dirname(__file__), '../omnicv_ros2'))
 if ROOT not in sys.path:
     sys.path.append(ROOT)
@@ -57,8 +58,6 @@ frame = cv2.circle(
 frame = cv2.circle(frame,
                    (frame.shape[1] // 2, frame.shape[0] // 2),
                    2, (0, 0, 0), -1)
-print(frame.shape)
-
 outShape = [480, 960]
 inShape = frame.shape[:2]
 
@@ -108,15 +107,17 @@ while True:
         )
         cv2.imshow(WINDOW_NAME, frame2)
         if cv2.waitKey(1) & 0xFF == 27:
-            print("aperture : ", aperture)
-            print("delx : ", delx)
-            print("dely : ", dely)
-            f = open("../config/fisheyeParams.txt", "w+")
-            f.write(str(RADIUS) + "\n")
-            f.write(str(aperture) + "\n")
-            f.write(str(delx) + "\n")
-            f.write(str(dely) + "\n")
-            f.close()
+            print(f"radius : {RADIUS}")
+            print(f"aperture : {aperture}")
+            print(f"delx : {delx}")
+            print(f"dely : {dely}")
+            save_file = os.path.join(get_package_share_directory('omnicv_ros2'), "config/fisheyeParams.txt")
+            with open(save_file, "w+") as f:
+                f.write(str(RADIUS) + "\n")
+                f.write(str(aperture) + "\n")
+                f.write(str(delx) + "\n")
+                f.write(str(dely) + "\n")
+                f.close()
             break
         # frame2[:, :, :] = 0
         cv2.imshow("image", frame2)
