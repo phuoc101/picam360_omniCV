@@ -22,7 +22,7 @@ def main(opts):
         delx = f.readline()
         dely = f.readline()
     mapper = fisheyeImgConvGPU(param_path)
-    outShape = [400, 800]
+    outShape = opts.out_shape
     src = cv2.imread(opts.source)
     cv2.imshow('source', src)
     res = mapper.fisheye2equirect(src, outShape, aperture=aperture, dely=dely)
@@ -45,6 +45,8 @@ if __name__ == "__main__":
                         default=None, help='path to camera parameter file')
     parser.add_argument('--param', type=str, default=str(DF_PARAM),
                         help='path to camera parameter file')
+    parser.add_argument('--out_shape', nargs=2, type=int, default=[800, 1600],
+                        help='output image size')
     opts = parser.parse_args()
     if not os.path.isfile(opts.source):
         logging.error("Please enter valid source file")
