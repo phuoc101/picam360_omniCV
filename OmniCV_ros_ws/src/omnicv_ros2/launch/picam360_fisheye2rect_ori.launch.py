@@ -1,45 +1,39 @@
-import argparse
+from ament_index_python import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch.substitutions import TextSubstitution
 from launch_ros.actions import Node
 
 import os
-import sys
-
-# from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    ld = LaunchDescription()
+    out_width_launch_arg = DeclareLaunchArgument(
+        'out_width', default_value=TextSubstitution(text='800'))
+    out_height_launch_arg = DeclareLaunchArgument(
+        'out_height', default_value=TextSubstitution(text='400'))
 
-    parser = argparse.ArgumentParser(description='usb_cam demo')
-    parser.add_argument('-n', '--node-name', dest='node_name', type=str,
-                        help='name for device', default='picam360')
-
-    args, unknown = parser.parse_known_args(sys.argv[4:])
-
-    # usb_cam_dir = get_package_share_directory('usb_cam')
-
-    # get path to params file
-    dir = os.path.dirname(os.path.abspath(__file__))
-    params_path = os.path.join(dir, '../config/picam360_params.yaml')
-
-    node_name = args.node_name
-
-    ld.add_action(Node(
-        package='usb_cam', executable='usb_cam_node_exe', output='screen',
-        name=node_name,
-        # namespace=ns,
-        parameters=[params_path],
-        remappings=[
-            ("__ns", "/picam360")
-        ]
-    ))
-    ld.add_action(Node(
-        package='omnicv_ros2', executable='show_img', output='screen',
-        ))
-
-    ld.add_action(Node(
+    picam360_read_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(launch_file_path=os.path.join(
+            get_package_share_directory('omnicv_ros2'),
+            'launch/picam360_read.launch.py')),
+    )
+    fisheye2rect_node = Node(
         package='omnicv_ros2', executable='fisheye2rect_ori', output="screen",
-        name="picam_rectifier"
-        ))
-    return ld
+        name="picam_rectifier",
+        parameters=[
+            {'image_width': LaunchConfiguration('image_width')},
+            {'image_height': LaunchConfiguration('image_height')},
+            {'out_width': LaunchConfiguration('out_width')},
+            {'out_height': LaunchConfiguration('out_height')},
+            ]
+    )
+    return LaunchDescription([
+        out_width_launch_arg,
+        out_height_launch_arg,
+        picam360_read_node,
+        fisheye2rect_node,
+    ])

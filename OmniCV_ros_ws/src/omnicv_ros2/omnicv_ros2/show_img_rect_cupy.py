@@ -33,7 +33,6 @@ class PicamReader(Node):
         self.declare_parameter('out_width', 800)
         self.declare_parameter('out_height', 400)
         self.out_shape = (self.get_parameter('out_height').value, self.get_parameter('out_width').value)
-        print(self.out_shape)
 
     def image_callback(self, msg):
         if msg.step * msg.height != len(msg.data):

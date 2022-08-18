@@ -34,16 +34,17 @@ class PicamReader(Node):
         cv2.createTrackbar("theta", self.WINDOW_NAME, 180, 360, self.nothing)
         cv2.createTrackbar("phi", self.WINDOW_NAME, 180, 360, self.nothing)
 
+        self.declare_parameter('image_height', 480)
+        self.declare_parameter('image_width', 640)
+        self.image_size = (self.get_parameter('image_height').value, self.get_parameter('image_width').value)
+        self.declare_parameter('out_width', 800)
+        self.declare_parameter('out_height', 400)
+        self.out_shape = (self.get_parameter('out_height').value, self.get_parameter('out_width').value)
+
     def nothing(self, x):
         pass
 
     def image_callback(self, msg):
-        sz = (msg.height, msg.width)
-        # print(msg.header.stamp)
-        # if False:
-        #     print("{encoding} {width} {height} {step} {data_size}".format(
-        #         encoding=msg.encoding, width=msg.width, height=msg.height,
-        #         step=msg.step, data_size=len(msg.data)))
         if msg.step * msg.height != len(msg.data):
             self.get_logger().debug("bad step/height/data size")
             return
@@ -54,33 +55,31 @@ class PicamReader(Node):
                      self.frame.shape[2] != 3)
             if dirty:
                 self.frame = np.zeros([msg.height, msg.width, 3], dtype=np.uint8)
-            self.frame[:, :, 2] = np.array(msg.data[0::3]).reshape(sz)
-            self.frame[:, :, 1] = np.array(msg.data[1::3]).reshape(sz)
-            self.frame[:, :, 0] = np.array(msg.data[2::3]).reshape(sz)
+            self.frame[:, :, 2] = np.array(msg.data[0::3]).reshape(self.image_size)
+            self.frame[:, :, 1] = np.array(msg.data[1::3]).reshape(self.image_size)
+            self.frame[:, :, 0] = np.array(msg.data[2::3]).reshape(self.image_size)
         elif msg.encoding == "mono8":
-            self.frame = np.array(msg.data).reshape(sz)
+            self.frame = np.array(msg.data).reshape(self.image_size)
         else:
             self.get_logger().debug("unsupported encoding {}".format(msg.encoding))
             return
         if self.frame is not None:
-            # start = time.time()
-            outShape = [400, 800]
             mapper = fisheyeImgConvGPU(self.param_file_path)
             FOV = cv2.getTrackbarPos("FOV", self.WINDOW_NAME)
             theta = cv2.getTrackbarPos("theta", self.WINDOW_NAME) - 180
             phi = cv2.getTrackbarPos("phi", self.WINDOW_NAME) - 180
-            t = time.perf_counter()
+            start = time.perf_counter()
 
-            self.frame = mapper.fisheye2equirect(self.frame, outShape)
+            self.frame = mapper.fisheye2equirect(self.frame, self.out_shape)
             self.frame = mapper.equirect2persp(
                 self.frame, FOV, theta, phi, 400, 400
             )  # Specify parameters(FOV, theta, phi, height, width)
             self.frame = cv2.flip(self.frame, 1)
 
-            # self.frame = self.frame[0:outShape[0]//2, :]
             cv2.imshow(self.WINDOW_NAME, self.frame)
-            self.get_logger().info(f"Processing time: { time.perf_counter()-t }")
-            # print(time.time()- start)
+            end = time.perf_counter()
+            elapsed = end - start
+            self.get_logger().info(f"Processing time: {elapsed*1000} ms")
             cv2.waitKey(1)
 
 

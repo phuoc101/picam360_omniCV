@@ -8,26 +8,20 @@ from launch.substitutions import TextSubstitution
 from launch_ros.actions import Node
 
 import os
-import sys
+
 
 def generate_launch_description():
-    ld = LaunchDescription()
+    out_width_launch_arg = DeclareLaunchArgument(
+        'out_width', default_value=TextSubstitution(text='800'))
+    out_height_launch_arg = DeclareLaunchArgument(
+        'out_height', default_value=TextSubstitution(text='400'))
 
-    ld.add_action(action=DeclareLaunchArgument(
-        'image_width', default_value=TextSubstitution(text='640')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'image_height', default_value=TextSubstitution(text='480')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'out_width', default_value=TextSubstitution(text='800')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'out_height', default_value=TextSubstitution(text='400')))
-
-    ld.add_action(action=IncludeLaunchDescription(
+    picam360_read_node = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(launch_file_path=os.path.join(
             get_package_share_directory('omnicv_ros2'),
             'launch/picam360_read.launch.py')),
-    ))
-    ld.add_action(Node(
+    )
+    fisheye2rect_node = Node(
         package='omnicv_ros2', executable='fisheye2rect', output="screen",
         name="picam_rectifier",
         parameters=[
@@ -36,5 +30,10 @@ def generate_launch_description():
             {'out_width': LaunchConfiguration('out_width')},
             {'out_height': LaunchConfiguration('out_height')},
             ]
-    ))
-    return ld
+    )
+    return LaunchDescription([
+        out_width_launch_arg,
+        out_height_launch_arg,
+        picam360_read_node,
+        fisheye2rect_node,
+    ])

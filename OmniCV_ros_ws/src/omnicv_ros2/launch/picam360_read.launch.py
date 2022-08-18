@@ -1,4 +1,3 @@
-import argparse
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
@@ -10,32 +9,26 @@ from launch_ros.actions import Node
 import os
 import sys
 
-# from ament_index_python.packages import get_package_share_directory
-
-
 def generate_launch_description():
-    ld = LaunchDescription()
 
-    # get path to params file
-    dir = os.path.dirname(os.path.abspath(__file__))
-    ld.add_action(action=DeclareLaunchArgument(
-        'video_device', default_value=TextSubstitution(text='/dev/video2')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'io_method', default_value=TextSubstitution(text='mmap')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'frame_id', default_value=TextSubstitution(text='picam360')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'pixel_format', default_value=TextSubstitution(text='mjpeg')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'image_width', default_value=TextSubstitution(text='640')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'image_height', default_value=TextSubstitution(text='480')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'framerate', default_value=TextSubstitution(text='10.')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'camera_name', default_value=TextSubstitution(text='picam360')))
+    video_device_launch_arg = DeclareLaunchArgument(
+        'video_device', default_value=TextSubstitution(text='/dev/video2'))
+    io_method_launch_arg = DeclareLaunchArgument(
+        'io_method', default_value=TextSubstitution(text='mmap'))
+    frame_id_launch_arg = DeclareLaunchArgument(
+        'frame_id', default_value=TextSubstitution(text='picam360'))
+    pixel_format_launch_arg = DeclareLaunchArgument(
+        'pixel_format', default_value=TextSubstitution(text='mjpeg'))
+    image_width_launch_arg = DeclareLaunchArgument(
+        'image_width', default_value=TextSubstitution(text='640'))
+    image_height_launch_arg = DeclareLaunchArgument(
+        'image_height', default_value=TextSubstitution(text='480'))
+    framerate_launch_arg = DeclareLaunchArgument(
+        'framerate', default_value=TextSubstitution(text='10.'))
+    camera_name_launch_arg = DeclareLaunchArgument(
+        'camera_name', default_value=TextSubstitution(text='picam360'))
 
-    ld.add_action(Node(
+    usb_cam_node = Node(
         package='usb_cam', executable='usb_cam_node_exe', output='screen',
         name='picam360',
         # namespace=ns,
@@ -53,8 +46,19 @@ def generate_launch_description():
         remappings=[
             ("__ns", "/picam360")
         ]
-    ))
-    ld.add_action(Node(
+    )
+    show_img_node = Node(
         package='omnicv_ros2', executable='show_img', output='screen',
-    ))
-    return ld
+    )
+    return LaunchDescription([
+            video_device_launch_arg,
+            io_method_launch_arg,
+            frame_id_launch_arg,
+            pixel_format_launch_arg,
+            image_width_launch_arg,
+            image_height_launch_arg,
+            framerate_launch_arg,
+            camera_name_launch_arg,
+            usb_cam_node,
+            show_img_node,
+        ])

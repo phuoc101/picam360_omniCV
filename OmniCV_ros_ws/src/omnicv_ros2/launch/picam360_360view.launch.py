@@ -1,3 +1,4 @@
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
@@ -7,27 +8,32 @@ from launch.substitutions import TextSubstitution
 from launch_ros.actions import Node
 
 import os
-import sys
-
-# from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    ld = LaunchDescription()
+    out_width_launch_arg = DeclareLaunchArgument(
+        'out_width', default_value=TextSubstitution(text='800'))
+    out_height_launch_arg = DeclareLaunchArgument(
+        'out_height', default_value=TextSubstitution(text='400'))
 
-    ld.add_action(action=DeclareLaunchArgument(
-        'image_width', default_value=TextSubstitution(text='640')))
-    ld.add_action(action=DeclareLaunchArgument(
-        'image_height', default_value=TextSubstitution(text='480')))
-
-    ld.add_action(action=IncludeLaunchDescription(
+    picam360_read_node = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(launch_file_path=os.path.join(
             get_package_share_directory('omnicv_ros2'),
             'launch/picam360_read.launch.py')),
-    ))
-
-    ld.add_action(Node(
+    )
+    view360_node = Node(
         package='omnicv_ros2', executable='360view', output="screen",
-        name="picam_360viewer"
-        ))
-    return ld
+        name="picam_360viewer",
+        parameters=[
+            {'image_width': LaunchConfiguration('image_width')},
+            {'image_height': LaunchConfiguration('image_height')},
+            {'out_width': LaunchConfiguration('out_width')},
+            {'out_height': LaunchConfiguration('out_height')},
+        ]
+    )
+    return LaunchDescription([
+        out_width_launch_arg,
+        out_height_launch_arg,
+        picam360_read_node,
+        view360_node,
+    ])
