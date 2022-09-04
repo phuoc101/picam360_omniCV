@@ -1,12 +1,12 @@
 # picam360_omniCV
 
 ROS2 (Foxy) package base on [OmniCV-Lib](https://github.com/kaustubh-sadekar/OmniCV-Lib) to work with the [Picam360 Panoramic camera](https://www.picam360.com/).\
-Added acceleration with CuPy and OpenCV+Cuda to speed up processing.
+Added acceleration with [CuPy](https://cupy.dev) and OpenCV+Cuda to speed up processing.
 
 ## Dependencies:
 - ROS2 (Foxy)
 - CuPy
-- OpenCV (build from source with CUDA support)
+- OpenCV (build from source with CUDA support (see install_cv.md))
 
 ## Installation
 Clone the repository:
